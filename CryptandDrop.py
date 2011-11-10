@@ -315,7 +315,7 @@ def main():
         for f in pattern:
             # deserialize in a json object and then iterate over the dictionaries
             # in the resulting list to grab the paths of files matching the pattern
-            filef = json.dumps(search_file('/', fl, cl))
+            filef = json.dumps(search_file('/', f, cl))
             paths = return_paths(filef)
             for p in paths:
                 del_response = delete_file(p, cl)
