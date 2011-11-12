@@ -174,7 +174,7 @@ def upload_file(fl, flname, cl):
         response = cl.put_file('/' + flname, fl)
     except rest.ErrorResponse as e:
         print(e)
-        return e
+        sys.exit(1)
 
     print(response)
 
