@@ -67,11 +67,11 @@ def argument_parser():
             help="remove files matching the given pattern",
             dest="remove")
     cli_parser.add_argument(action="store",
-            help="Files",
+            help="Files or files' patterns to act upon",
             nargs='*',
             dest="filelist")
     options = cli_parser.parse_args()
-    return options
+    return options, cli_parser
 
 def import_config(f):
     """Import config file variables"""
@@ -297,7 +297,7 @@ def main():
     app_key, app_secret, access_token, dropboxdir = import_config(CONFIG_FILE)
 
     # parse cli arguments
-    options = argument_parser()
+    options, cli_parser = argument_parser()
 
     sess = session.DropboxSession(app_key, app_secret, ACCESS_TYPE)
     access_token_secret, access_token = split_token(access_token)
@@ -324,6 +324,8 @@ def main():
             for p in paths:
                 del_response = delete_file(p, cl)
 
+        sys.exit(0)
+
     if options.encrypt:
         if options.singlepass:
             pwd = ask_password(options.filelist, False, True)
@@ -337,7 +339,8 @@ def main():
         else:
             handle_files(options.filelist, dropboxdir, cl, False)
     else:
-        print("error")
+        cli_parser.print_help()
+        sys.exit(1)
     
 
 if __name__ == '__main__':
