@@ -252,6 +252,8 @@ def handle_files(filelist, dbxdir, cl, operation=True, pwd=False):
                         e.write(encrypted_file)
                     with open(fl + '.enc', 'rb') as u:
                         upload_file(u, fl + '.enc', cl)
+                    # remove the local file
+                    os.remove(fl + '.enc')
         else:
             for fl in filelist:
                 fl = file_exists(fl, dbxdir)
@@ -261,6 +263,8 @@ def handle_files(filelist, dbxdir, cl, operation=True, pwd=False):
                         e.write(encrypted_file)
                     with open(fl + '.enc', 'rb') as u:
                         upload_file(u, fl + '.enc', cl)
+                    # remove the local file
+                    os.remove(fl + '.enc')
     else:
         # if operation false then decrypt
         if not pwd:
