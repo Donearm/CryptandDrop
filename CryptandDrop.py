@@ -276,7 +276,7 @@ def handle_files(filelist, dbxdir, cl, operation=True, pwd=False):
                 with open(os.path.basename(fl).replace('.enc', ''), 'wb') as o:
                     o.write(decrypted_file)
                 # then delete the decrypted files from Dropbox
-                filef = json.dumps(search_file('/', fl, cl))
+                filef = json.dumps(search_file('/', os.path.basename(fl), cl))
                 paths = return_paths(filef)
                 for p in paths:
                     del_response = delete_file(p, cl)
@@ -288,7 +288,7 @@ def handle_files(filelist, dbxdir, cl, operation=True, pwd=False):
                 with open(os.path.basename(fl).replace('.enc', ''), 'wb') as o:
                     o.write(decrypted_file)
                 # then delete the decrypted files from Dropbox
-                filef = json.dumps(search_file('/', fl, cl))
+                filef = json.dumps(search_file('/', os.path.basename(fl), cl))
                 paths = return_paths(filef)
                 for p in paths:
                     del_response = delete_file(p, cl)
