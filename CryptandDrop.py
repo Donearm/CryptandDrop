@@ -316,6 +316,10 @@ def main():
             # deserialize in a json object and then iterate over the dictionaries
             # in the resulting list to grab the paths of files matching the pattern
             filef = json.dumps(search_file('/', f, cl))
+            if len(filef) <= 2:
+                # filef contains just the square brackets, therefore it's empty of real data
+                print("File not found")
+                sys.exit(1)
             paths = return_paths(filef)
             for p in paths:
                 del_response = delete_file(p, cl)
