@@ -33,8 +33,13 @@ try:
 except ImportError:
     import json
 
-CONFIG_FILE = 'cryptanddrop.conf'
 CURRENTDIR = os.path.dirname(__file__) + '/'
+
+if os.path.isfile(os.path.expanduser("~/.cryptanddrop.conf")):
+    CONFIG_FILE = os.path.expanduser("~/.cryptanddrop.conf")
+else:
+    CONFIG_FILE = 'cryptanddrop.conf'
+
 APP_FOLDER = 'Crypted'
 ACCESS_TYPE = 'app_folder'
 
@@ -76,9 +81,7 @@ def argument_parser():
 def import_config(f):
     """Import config file variables"""
     parser = SafeConfigParser(allow_no_value=True)
-    # build path to config file based on script's directory
-    filepath = CURRENTDIR + f
-    parser.read(filepath)
+    parser.read(f)
     app_key = base64.b64decode(parser.get('auth', 'APP_KEY'))
     app_secret = base64.b64decode(parser.get('auth', 'APP_SECRET'))
     try:
