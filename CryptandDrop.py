@@ -248,23 +248,25 @@ def handle_files(filelist, dbxdir, cl, operation=True, pwd=False):
                 pwd = ask_password(fl)
                 with open(fl, 'rb') as f:
                     encrypted_file = encryptsign_file(pwd, f.read())
-                    with open(fl + '.enc', 'wb') as e:
+                    output_file = os.path.basename(fl + '.enc')
+                    with open(output_file, 'wb') as e:
                         e.write(encrypted_file)
-                    with open(fl + '.enc', 'rb') as u:
-                        upload_file(u, fl + '.enc', cl)
+                    with open(output_file, 'rb') as u:
+                        upload_file(u, output_file, cl)
                     # remove the local file
-                    os.remove(fl + '.enc')
+                    os.remove(output_file)
         else:
             for fl in filelist:
                 fl = file_exists(fl, dbxdir)
                 with open(fl, 'rb') as f:
                     encrypted_file = encryptsign_file(pwd, f.read())
-                    with open(fl + '.enc', 'wb') as e:
+                    output_file = os.path.basename(fl + '.enc')
+                    with open(output_file, 'wb') as e:
                         e.write(encrypted_file)
-                    with open(fl + '.enc', 'rb') as u:
-                        upload_file(u, fl + '.enc', cl)
+                    with open(output_file, 'rb') as u:
+                        upload_file(u, output_file, cl)
                     # remove the local file
-                    os.remove(fl + '.enc')
+                    os.remove(output_file)
     else:
         # if operation false then decrypt
         if not pwd:
