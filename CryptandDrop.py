@@ -34,7 +34,12 @@ except ImportError:
     import json
 
 CURRENTDIR = os.path.dirname(__file__) + '/'
-CONFIG_FILE = os.path.expanduser("~/.cryptanddrop.conf") or 'cryptanddrop.conf'
+
+if os.path.isfile(os.path.expanduser("~/.cryptanddrop.conf")):
+    CONFIG_FILE = os.path.expanduser("~/.cryptanddrop.conf")
+else:
+    CONFIG_FILE = 'cryptanddrop.conf'
+
 APP_FOLDER = 'Crypted'
 ACCESS_TYPE = 'app_folder'
 
