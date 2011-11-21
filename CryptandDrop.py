@@ -35,11 +35,6 @@ except ImportError:
 
 CURRENTDIR = os.path.dirname(__file__) + '/'
 
-if os.path.isfile(os.path.expanduser("~/.cryptanddrop.conf")):
-    CONFIG_FILE = os.path.expanduser("~/.cryptanddrop.conf")
-else:
-    CONFIG_FILE = 'cryptanddrop.conf'
-
 APP_FOLDER = 'Crypted'
 ACCESS_TYPE = 'app_folder'
 
@@ -78,12 +73,19 @@ def argument_parser():
     options = cli_parser.parse_args()
     return options, cli_parser
 
-def import_config(f):
+def import_config():
     """Import config file variables"""
     parser = SafeConfigParser(allow_no_value=True)
-    parser.read(f)
-    app_key = base64.b64decode(parser.get('auth', 'APP_KEY'))
-    app_secret = base64.b64decode(parser.get('auth', 'APP_SECRET'))
+    file_locations = ['cryptanddrop.conf', os.path.expanduser('~/.cryptanddrop.conf')]
+    parser.read(file_locations)
+    try:
+        app_key = base64.b64decode(parser.get('auth', 'APP_KEY'))
+        app_secret = base64.b64decode(parser.get('auth', 'APP_SECRET'))
+    except NoSectionError as e:
+        # the config file hasn't been found then
+        print("No cryptanddrop.conf in current or home directory, exiting...")
+        sys.exit(1)
+
     try:
         access_token = parser.get('auth', 'ACCESS_TOKEN')
     except NoOptionError:
@@ -300,7 +302,7 @@ def file_exists(f, dbxdir):
 
 def main():
     # import access token and dropbox directory path from the config file
-    app_key, app_secret, access_token, dropboxdir = import_config(CONFIG_FILE)
+    app_key, app_secret, access_token, dropboxdir = import_config()
     dropboxdir = dropboxdir + '/Apps/' + APP_FOLDER + '/'
 
     # parse cli arguments
