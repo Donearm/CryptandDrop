@@ -77,14 +77,18 @@ def import_config():
     """Import config file variables"""
     parser = SafeConfigParser(allow_no_value=True)
     file_locations = ['cryptanddrop.conf', os.path.expanduser('~/.cryptanddrop.conf')]
-    parser.read(file_locations)
+    try:
+        parser.read(file_locations)
+    except ParsingError as e:
+        # the config file hasn't been found or it couldn't be parsed
+        config_error()
+
     try:
         app_key = base64.b64decode(parser.get('auth', 'APP_KEY'))
         app_secret = base64.b64decode(parser.get('auth', 'APP_SECRET'))
     except NoSectionError as e:
         # the config file hasn't been found then
-        print("No cryptanddrop.conf in current or home directory, exiting...")
-        sys.exit(1)
+        config_error()
 
     try:
         access_token = parser.get('auth', 'ACCESS_TOKEN')
@@ -98,6 +102,11 @@ def import_config():
     dropbox_dir = parser.get('config', 'DROPBOX_DIR')
 
     return app_key, app_secret, access_token, dropbox_dir
+
+def config_error():
+    """Print message error on config file parsing errors"""
+    print("No cryptanddrop.conf in current or home directory, exiting...")
+    sys.exit(1)
 
 def ask_password(filename, decrypting=False, onepassforall=False):
     """Ask the user for a password for the encrypted files"""
