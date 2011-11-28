@@ -241,77 +241,44 @@ def connect_app_to_account(key, secret, accesstype):
 
 def handle_encrypt_files(filelist, dbxdir, cl, pwd=False):
     """Encrypt files to the Dropbox folder"""
-    if not pwd:
-        for fl in filelist:
-            orig_fl = fl
-            fl = file_exists(fl, dbxdir)
-            if fl:
-                pwd = ask_password(fl)
-                with open(fl, 'rb') as f:
-                    encrypted_file = encryptsign_file(pwd, f.read())
-                    output_file = os.path.basename(fl + '.enc')
-                    with open(output_file, 'wb') as e:
-                        e.write(encrypted_file)
-                    with open(output_file, 'rb') as u:
-                        upload_file(u, output_file, cl)
-                    # remove the local file
-                    os.remove(output_file)
-            else:
-                print("%s doesn't exist" % orig_fl)
-    else:
-        for fl in filelist:
-            orig_fl = fl
-            fl = file_exists(fl, dbxdir)
-            if fl:
-                with open(fl, 'rb') as f:
-                    encrypted_file = encryptsign_file(pwd, f.read())
-                    output_file = os.path.basename(fl + '.enc')
-                    with open(output_file, 'wb') as e:
-                        e.write(encrypted_file)
-                    with open(output_file, 'rb') as u:
-                        upload_file(u, output_file, cl)
-                    # remove the local file
-                    os.remove(output_file)
-            else:
-                print("%s doesn't exist" % orig_fl)
+    for fl in filelist:
+        orig_fl = fl
+        fl = file_exists(fl, dbxdir)
+        if not pwd:
+            pwd = ask_password(fl)
+        if fl:
+            with open(fl, 'rb') as f:
+                encrypted_file = encryptsign_file(pwd, f.read())
+                output_file = os.path.basename(fl + '.enc')
+                with open(output_file, 'wb') as e:
+                    e.write(encrypted_file)
+                with open(output_file, 'rb') as u:
+                    upload_file(u, output_file, cl)
+                # remove the local file
+                os.remove(output_file)
+        else:
+            print("%s doesn't exist" % orig_fl)
 
 def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
     """Decrypt files in the Dropbox directory"""
-    if not pwd:
-        for fl in filelist:
-            orig_fl = fl
-            fl = file_matches(fl, dbxdir)
+    for fl in filelist:
+        orig_fl = fl
+        fl = file_matches(fl, dbxdir)
+        if fl:
             dbx_fl = dbxdir + fl
-            if fl:
+            if not pwd:
                 pwd = ask_password(dbx_fl, True)
-                with open(dbx_fl, 'rb') as f:
-                    decrypted_file = decryptsign_file(pwd, f.read())
-                with open(os.path.basename(dbx_fl).replace('.enc', ''), 'wb') as o:
-                    o.write(decrypted_file)
-                # then delete the decrypted files from Dropbox
-                filef = json.dumps(search_file('/', os.path.basename(dbx_fl), cl))
-                paths = return_paths(filef)
-                for p in paths:
-                    del_response = delete_file(p, cl)
-            else:
-                print("%s doesn't exist" % orig_fl)
-    else:
-        for fl in filelist:
-            orig_fl = fl
-            fl = file_matches(fl, dbxdir)
-            dbx_fl = dbxdir + fl
-            if fl:
-                with open(dbx_fl, 'rb') as f:
-                    decrypted_file = decryptsign_file(pwd, f.read())
-                with open(os.path.basename(dbx_fl).replace('.enc', ''), 'wb') as o:
-                    o.write(decrypted_file)
-                # then delete the decrypted files from Dropbox
-                filef = json.dumps(search_file('/', os.path.basename(dbx_fl), cl))
-                paths = return_paths(filef)
-                for p in paths:
-                    del_response = delete_file(p, cl)
-            else:
-                print("%s doesn't exist" % orig_fl)
+            with open(dbx_fl, 'rb') as f:
+                decrypted_file = decryptsign_file(pwd, f.read())
+            with open(os.path.basename(dbx_fl).replace('.enc', ''), 'wb') as o:
+                o.write(decrypted_file)
+            # then delete the decrypted files from Dropbox
+            filef = json.dumps(search_file('/', os.path.basename(dbx_fl), cl))
+            paths = return_paths(filef)
+            for p in paths:
+                del_response = delete_file(p, cl)
+        else:
+            print("%s doesn't exist" % orig_fl)
 
     return
 
@@ -319,8 +286,6 @@ def file_matches(f, dbxdir):
     """Check for a file matching the pattern in the Dropbox directory"""
     names = os.listdir(dbxdir)
     pattern = '*' + f + '*'
-    print("Pattern:", pattern)
-    print("Names:", names)
     for n in names:
         if n == '.dropbox':
             # do not touch .dropbox file
