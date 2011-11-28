@@ -21,6 +21,7 @@ import sys
 import argparse
 import getpass
 import base64
+import fnmatch
 from os import urandom
 import os.path
 from ConfigParser import SafeConfigParser, NoOptionError
@@ -34,11 +35,6 @@ except ImportError:
     import json
 
 CURRENTDIR = os.path.dirname(__file__) + '/'
-
-if os.path.isfile(os.path.expanduser("~/.cryptanddrop.conf")):
-    CONFIG_FILE = os.path.expanduser("~/.cryptanddrop.conf")
-else:
-    CONFIG_FILE = 'cryptanddrop.conf'
 
 APP_FOLDER = 'Crypted'
 ACCESS_TYPE = 'app_folder'
@@ -78,12 +74,23 @@ def argument_parser():
     options = cli_parser.parse_args()
     return options, cli_parser
 
-def import_config(f):
+def import_config():
     """Import config file variables"""
     parser = SafeConfigParser(allow_no_value=True)
-    parser.read(f)
-    app_key = base64.b64decode(parser.get('auth', 'APP_KEY'))
-    app_secret = base64.b64decode(parser.get('auth', 'APP_SECRET'))
+    file_locations = ['cryptanddrop.conf', os.path.expanduser('~/.cryptanddrop.conf')]
+    try:
+        parser.read(file_locations)
+    except ParsingError as e:
+        # the config file hasn't been found or it couldn't be parsed
+        config_error()
+
+    try:
+        app_key = base64.b64decode(parser.get('auth', 'APP_KEY'))
+        app_secret = base64.b64decode(parser.get('auth', 'APP_SECRET'))
+    except NoSectionError as e:
+        # the config file hasn't been found then
+        config_error()
+
     try:
         access_token = parser.get('auth', 'ACCESS_TOKEN')
     except NoOptionError:
@@ -96,6 +103,11 @@ def import_config(f):
     dropbox_dir = parser.get('config', 'DROPBOX_DIR')
 
     return app_key, app_secret, access_token, dropbox_dir
+
+def config_error():
+    """Print message error on config file parsing errors"""
+    print("No cryptanddrop.conf in current or home directory, exiting...")
+    sys.exit(1)
 
 def ask_password(filename, decrypting=False, onepassforall=False):
     """Ask the user for a password for the encrypted files"""
@@ -229,10 +241,12 @@ def connect_app_to_account(key, secret, accesstype):
 
 def handle_encrypt_files(filelist, dbxdir, cl, pwd=False):
     """Encrypt files to the Dropbox folder"""
-    if not pwd:
-        for fl in filelist:
-            fl = file_exists(fl, dbxdir)
+    for fl in filelist:
+        orig_fl = fl
+        fl = file_exists(fl, dbxdir)
+        if not pwd:
             pwd = ask_password(fl)
+        if fl:
             with open(fl, 'rb') as f:
                 encrypted_file = encryptsign_file(pwd, f.read())
                 output_file = os.path.basename(fl + '.enc')
@@ -242,25 +256,18 @@ def handle_encrypt_files(filelist, dbxdir, cl, pwd=False):
                     upload_file(u, output_file, cl)
                 # remove the local file
                 os.remove(output_file)
-    else:
-        for fl in filelist:
-            fl = file_exists(fl, dbxdir)
-            with open(fl, 'rb') as f:
-                encrypted_file = encryptsign_file(pwd, f.read())
-                output_file = os.path.basename(fl + '.enc')
-                with open(output_file, 'wb') as e:
-                    e.write(encrypted_file)
-                with open(output_file, 'rb') as u:
-                    upload_file(u, output_file, cl)
-                # remove the local file
-                os.remove(output_file)
+        else:
+            print("%s doesn't exist" % orig_fl)
 
 def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
     """Decrypt files in the Dropbox directory"""
-    if not pwd:
-        for fl in filelist:
+    for fl in filelist:
+        orig_fl = fl
+        fl = file_matches(fl, dbxdir)
+        if fl:
             dbx_fl = dbxdir + fl
-            pwd = ask_password(dbx_fl, True)
+            if not pwd:
+                pwd = ask_password(dbx_fl, True)
             with open(dbx_fl, 'rb') as f:
                 decrypted_file = decryptsign_file(pwd, f.read())
             with open(os.path.basename(dbx_fl).replace('.enc', ''), 'wb') as o:
@@ -270,20 +277,24 @@ def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
             paths = return_paths(filef)
             for p in paths:
                 del_response = delete_file(p, cl)
-    else:
-        for fl in filelist:
-            dbx_fl = dbxdir + fl
-            with open(dbx_fl, 'rb') as f:
-                decrypted_file = decryptsign_file(pwd, f.read())
-            with open(os.path.basename(dbx_fl).replace('.enc', ''), 'wb') as o:
-                o.write(decrypted_file)
-            # then delete the decrypted files from Dropbox
-            filef = json.dumps(search_file('/', os.path.basename(dbx_fl), cl))
-            paths = return_paths(filef)
-            for p in paths:
-                del_response = delete_file(p, cl)
+        else:
+            print("%s doesn't exist" % orig_fl)
 
     return
+
+def file_matches(f, dbxdir):
+    """Check for a file matching the pattern in the Dropbox directory"""
+    names = os.listdir(dbxdir)
+    pattern = '*' + f + '*'
+    for n in names:
+        if n == '.dropbox':
+            # do not touch .dropbox file
+            pass
+        elif fnmatch.fnmatch(n, pattern):
+            print("This file matches: ", n)
+            return n
+        else:
+            pass
 
 def file_exists(f, dbxdir):
     """Check if a file exists in current or Dropbox directory"""
@@ -300,7 +311,7 @@ def file_exists(f, dbxdir):
 
 def main():
     # import access token and dropbox directory path from the config file
-    app_key, app_secret, access_token, dropboxdir = import_config(CONFIG_FILE)
+    app_key, app_secret, access_token, dropboxdir = import_config()
     dropboxdir = dropboxdir + '/Apps/' + APP_FOLDER + '/'
 
     # parse cli arguments
