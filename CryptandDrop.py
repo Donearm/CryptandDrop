@@ -193,10 +193,10 @@ def upload_file(fl, flname, cl):
 
     print(response)
 
-def download_file(fl, cl):
+def download_file(path, fl, cl):
     """Download a file from Dropbox"""
     try:
-        response = cl.get_file(fl)
+        response = cl.get_file(path + fl)
     except rest.ErrorResponse as e:
         print(e)
         return e
