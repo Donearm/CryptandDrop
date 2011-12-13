@@ -22,7 +22,7 @@ import argparse
 import getpass
 import base64
 import fnmatch
-from os import urandom
+from os import urandom, getcwd
 import os.path
 from ConfigParser import SafeConfigParser, NoOptionError
 from dropbox import client, rest, session
@@ -254,6 +254,7 @@ def handle_encrypt_files(filelist, dbxdir, cl, pwd=False):
                     e.write(encrypted_file)
                 with open(output_file, 'rb') as u:
                     upload_file(u, output_file, cl)
+                print("%s uploaded" % u.name)
                 # remove the local file
                 os.remove(output_file)
         else:
@@ -277,6 +278,7 @@ def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
             paths = return_paths(filef)
             for p in paths:
                 del_response = delete_file(p, cl)
+            print("File decrypted to %s" % getcwd())
         else:
             print("%s doesn't exist" % orig_fl)
 
