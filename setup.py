@@ -25,5 +25,12 @@ setup(name='Cryptanddrop',
         requires=['pycrypto', 'python-oauth', 'simplejson'],
         keywords='encrypter decrypter dropbox',
         license='COPYING',
-        classfiers=[],
+        classfiers=['Development Status :: 4 - Beta',
+            'Environment :: Console',
+            'Intended Audience :: End Users/Desktop',
+            'Intended Audience :: System Administrators',
+            'License :: OSI Approved :: GNU General Public License (GPL)',
+            'Operating System :: OS Independent',
+            'Programming Language :: Python :: 2',
+            'Topic :: Internet']
         )
