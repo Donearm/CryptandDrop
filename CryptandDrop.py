@@ -24,15 +24,12 @@ import base64
 import fnmatch
 from os import urandom, getcwd
 import os.path
-from ConfigParser import SafeConfigParser, NoOptionError
+from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
 from dropbox import client, rest, session
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Hash import HMAC
-try:
-    import simplejson as json
-except ImportError:
-    import json
+import json
 
 CURRENTDIR = os.path.dirname(__file__) + '/'
 
