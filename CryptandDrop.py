@@ -64,6 +64,10 @@ def argument_parser():
             action="store_true",
             help="remove files matching the given pattern",
             dest="remove")
+    cli_parser.add_argument("-f", "--config-file",
+            action="store",
+            help="use an alternative location for the config file",
+            dest="configfile")
     cli_parser.add_argument(action="store",
             help="Files or files' patterns to act upon",
             nargs='*',
@@ -71,10 +75,14 @@ def argument_parser():
     options = cli_parser.parse_args()
     return options, cli_parser
 
-def import_config():
+def import_config(configfile=""):
     """Import config file variables"""
     parser = SafeConfigParser(allow_no_value=True)
-    file_locations = ['cryptanddrop.conf', os.path.expanduser('~/.cryptanddrop.conf')]
+    if configfile:
+        file_locations = [os.path.realpath(configfile)]
+    else:
+        file_locations = ['cryptanddrop.conf', os.path.expanduser('~/.cryptanddrop.conf')]
+
     try:
         parser.read(file_locations)
     except ParsingError as e:
@@ -309,12 +317,13 @@ def file_exists(f, dbxdir):
 
 
 def main():
-    # import access token and dropbox directory path from the config file
-    app_key, app_secret, access_token, dropboxdir = import_config()
-    dropboxdir = dropboxdir + '/Apps/' + APP_FOLDER + '/'
-
     # parse cli arguments
     options, cli_parser = argument_parser()
+
+    # import access token and dropbox directory path from the config file
+    app_key, app_secret, access_token, dropboxdir = import_config(options.configfile)
+    dropboxdir = dropboxdir + '/Apps/' + APP_FOLDER + '/'
+
 
     sess = session.DropboxSession(app_key, app_secret, ACCESS_TYPE)
     access_token_secret, access_token = split_token(access_token)
