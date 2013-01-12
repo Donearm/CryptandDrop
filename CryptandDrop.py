@@ -42,6 +42,7 @@ SIG_SIZE = SHA256.digest_size
 class AuthenticationError(Exception):
     pass
 
+
 def argument_parser():
     """CLI argument parser"""
     cli_parser = argparse.ArgumentParser()
@@ -74,6 +75,7 @@ def argument_parser():
             dest="filelist")
     options = cli_parser.parse_args()
     return options, cli_parser
+
 
 def import_config(configfile=""):
     """Import config file variables"""
@@ -109,10 +111,12 @@ def import_config(configfile=""):
 
     return app_key, app_secret, access_token, dropbox_dir
 
+
 def config_error():
     """Print message error on config file parsing errors"""
     print("No cryptanddrop.conf in current or home directory, exiting...")
     sys.exit(1)
+
 
 def ask_password(filename, decrypting=False, onepassforall=False):
     """Ask the user for a password for the encrypted files"""
@@ -133,6 +137,7 @@ def ask_password(filename, decrypting=False, onepassforall=False):
         raise(TypeError, "password must be a string")
         sys.exit(1)
 
+
 def split_token(tkn):
     """Split, twice, an access and access secret token string as returned by obtain_access_token
     returning only the tokens"""
@@ -140,10 +145,12 @@ def split_token(tkn):
     
     return access_scrt.split('=')[1], access.split('=')[1]
 
+
 def hashkey(k):
     """Hash a key"""
     sha = SHA256.new(k)
     return sha.digest()
+
 
 def encryptsign_file(key, fl):
     """Encrypt and sign a file"""
@@ -156,6 +163,7 @@ def encryptsign_file(key, fl):
     sig = HMAC.new(key, data, SHA256).digest()
 
     return data + sig
+
 
 def decryptsign_file(key, fl):
     """Check signature and decrypt a file"""
@@ -171,12 +179,14 @@ def decryptsign_file(key, fl):
 
     return data[:-ord(data[-1])]
 
+
 def return_paths(jso):
     """Return path list of files in a json object response from Drobpox"""
     decodedjson = json.loads(jso)
     paths = [item['path'] for item in decodedjson]
 
     return paths
+
 
 def search_file(path, flname, cl):
     """Search for a matching filename in a Dropbox path"""
@@ -188,6 +198,7 @@ def search_file(path, flname, cl):
 
     return response
 
+
 def upload_file(fl, flname, cl):
     """Upload a file to Dropbox"""
     try:
@@ -197,6 +208,7 @@ def upload_file(fl, flname, cl):
         sys.exit(1)
 
     print(response)
+
 
 def download_file(path, fl, cl):
     """Download a file from Dropbox"""
@@ -208,6 +220,7 @@ def download_file(path, fl, cl):
 
     return response.read()
 
+
 def delete_file(fl, cl):
     """Delete a file from the Dropbox folder"""
     try:
@@ -217,6 +230,7 @@ def delete_file(fl, cl):
         return e
 
     return response
+
 
 def account_info(session):
     """Return a dictionary containing Dropbox account infos"""
@@ -244,6 +258,7 @@ def connect_app_to_account(key, secret, accesstype):
 
     return sess, access_token
 
+
 def handle_encrypt_files(filelist, dbxdir, cl, pwd=False):
     """Encrypt files to the Dropbox folder"""
     for fl in filelist:
@@ -264,6 +279,7 @@ def handle_encrypt_files(filelist, dbxdir, cl, pwd=False):
                 os.remove(output_file)
         else:
             print("%s doesn't exist" % orig_fl)
+
 
 def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
     """Decrypt files in the Dropbox directory"""
@@ -289,6 +305,7 @@ def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
 
     return
 
+
 def file_matches(f, dbxdir):
     """Check for a file matching the pattern in the Dropbox directory"""
     names = os.listdir(dbxdir)
@@ -302,6 +319,7 @@ def file_matches(f, dbxdir):
             return n
         else:
             pass
+
 
 def file_exists(f, dbxdir):
     """Check if a file exists in current or Dropbox directory"""
