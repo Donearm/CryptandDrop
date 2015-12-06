@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/Donearm/CryptandDrop.svg)](https://travis-ci.org/Donearm/CryptandDrop)
+
 What is it?
 ==========
 
