@@ -1,7 +1,7 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 ###############################################################################
-# Copyright (c) 2011-2015, Gianluca Fiore
+# Copyright (c) 2011-2019, Gianluca Fiore
 #
 #    This program is free software: you can redistribute it and/or modify
 #    it under the terms of the GNU Lesser General Public License as published by
@@ -24,7 +24,7 @@ import base64
 import fnmatch
 from os import urandom, getcwd
 import os.path
-from ConfigParser import SafeConfigParser, NoOptionError, NoSectionError
+from configparser import SafeConfigParser, NoOptionError, NoSectionError
 from dropbox import client, rest, session
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
@@ -134,7 +134,7 @@ def ask_password(filename, decrypting=False, onepassforall=False):
     if isinstance(pwd, str):
         return pwd
     else:
-        raise(TypeError, "password must be a string")
+        raise TypeError
         sys.exit(1)
 
 
@@ -171,7 +171,7 @@ def decryptsign_file(key, fl):
     sig = fl[-SIG_SIZE:]
     data = fl[:-SIG_SIZE]
     if HMAC.new(key, data, SHA256).digest() != sig:
-        raise(AuthenticationError, "Message authentication failed. Perhaps wrong password?")
+        raise AuthenticationError
     iv = data[:16]
     data = data[16:]
     cipher = AES.new(key, AES.MODE_CBC, iv)
@@ -235,7 +235,7 @@ def delete_file(fl, cl):
 def account_info(session):
     """Return a dictionary containing Dropbox account infos"""
     cl = client.DropboxClient(session)
-    print(cl.account_info())
+    print((cl.account_info()))
 
     return cl.account_info()
 
@@ -251,7 +251,7 @@ def connect_app_to_account(key, secret, accesstype):
 
     print(url)
     print("Please visit this url, press the 'Allow' button and then hit 'Enter' here")
-    raw_input()
+    input()
 
     # upgrade the request token to an access one
     access_token = sess.obtain_access_token(request_token)
@@ -274,11 +274,11 @@ def handle_encrypt_files(filelist, dbxdir, cl, pwd=False):
                     e.write(encrypted_file)
                 with open(output_file, 'rb') as u:
                     upload_file(u, output_file, cl)
-                print("%s uploaded" % u.name)
+                print(("%s uploaded" % u.name))
                 # remove the local file
                 os.remove(output_file)
         else:
-            print("%s doesn't exist" % orig_fl)
+            print(("%s doesn't exist" % orig_fl))
 
 
 def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
@@ -299,9 +299,9 @@ def handle_decrypt_files(filelist, dbxdir, cl, pwd=False):
             paths = return_paths(filef)
             for p in paths:
                 del_response = delete_file(p, cl)
-            print("File decrypted to %s" % getcwd())
+            print(("File decrypted to %s" % getcwd()))
         else:
-            print("%s doesn't exist" % orig_fl)
+            print(("%s doesn't exist" % orig_fl))
 
     return
 
@@ -315,7 +315,7 @@ def file_matches(f, dbxdir):
             # do not touch .dropbox file
             pass
         elif fnmatch.fnmatch(n, pattern):
-            print("This file matches: ", n)
+            print(("This file matches: ", n))
             return n
         else:
             pass
@@ -326,7 +326,7 @@ def file_exists(f, dbxdir):
     if not os.path.isfile(f):
         f = os.path.basename(f)
         if not os.path.isfile(dbxdir + f):
-            print("%s doesn't exist" % f)
+            print(("%s doesn't exist" % f))
             sys.exit(1)
         else:
             return dbxdir + f
@@ -347,7 +347,7 @@ def main():
     access_token_secret, access_token = split_token(access_token)
 
     if not options.filelist:
-        raise(IOError, "You should furnish at least 1 file")
+        raise IOError
 
     sess.set_token(access_token, access_token_secret)
     
